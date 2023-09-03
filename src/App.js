@@ -48,11 +48,17 @@ const reducer = (state, action) => {
       };
     case 'nextQuestion':
       const totalQuestion = state.questions.length-1
-      console.log(totalQuestion , state.index,state.index+1 )
       return{
         ...state,
         index:totalQuestion === state.index ? 0 : state.index+1 ,
         answer:null
+      }
+    case 'reset':
+      return{
+        ...state,
+        index: 0,
+        answer: null,
+        points: 0,
       }
     default:
       throw new Error("jani Na");
@@ -61,8 +67,12 @@ const reducer = (state, action) => {
 
 const App = () => {
   const [state, dispatch] = useReducer(reducer, initialstate);
-  const { questions, status, index, answer,points } = state;
+  const { questions, status, index, answer, points } = state;
   const numberOFQuestion = questions.length;
+  
+  const arrPoint =questions.map((ques)=> ques.points)
+  const MaxPoints = arrPoint.reduce((curr,index)=> curr+index,0)
+
   useEffect(() => {
     fetch("http://localhost:9000/questions")
       .then((res) => res.json())
@@ -73,12 +83,14 @@ const App = () => {
   return (
     <div className="app">
       <Header />
+      
+      <Main>
       <Progress 
       numberOFQuestion={numberOFQuestion}
       index={index}
       points={points}
+      MaxPoints={MaxPoints}
       />
-      <Main>
         {status === "loading" && <Loader />}
         {status === "error" && <Error />}
         {status === "ready" && (
@@ -95,6 +107,8 @@ const App = () => {
             answer={answer}
           />
           <NextButton
+           questions={questions}
+           index={index}
            dispatch={dispatch}
            answer={answer}/>
           </>
